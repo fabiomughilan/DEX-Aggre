@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { MessageCircle, Mic, X, Send } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from './ui/button'
+import { Card } from './ui/card'
+import { Input } from './ui/input'
+import { ScrollArea } from './ui/scroll-area'
 // import { useConversation } from '@11labs/react'
 
 interface Message {

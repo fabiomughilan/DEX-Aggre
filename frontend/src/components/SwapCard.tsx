@@ -79,7 +79,7 @@ const SwapCard = () => {
         <div className="mt-6">
           <DexButton variant="connect" className="w-full h-14 text-lg">
             <Zap className="h-5 w-5" />
-            Connect wallet
+            Swap
           </DexButton>
         </div>
       
