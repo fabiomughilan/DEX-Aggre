@@ -11,8 +11,8 @@ import axios from "axios";
 const API_KEY = "RSvguRUV5uE1lSJk78tHKxggOHt65noY";           // Get from GlueX
 const UNIQUE_PID = "f29ec7b244e829aaa006684a05cb3ff02f0e5a1c09527a8f897df52cc59a5a1d";     // Unique process ID (tracking)
 const QUOTE_ENDPOINT = "https://router.gluex.xyz/v1/quote";
-const RPC_URL = "https://sepolia.infura.io/v3/dd8626329f304943b5fde53b1f7ae0d2"; // Ethereum RPC
-const PRIVATE_KEY = "0x2ac974cc853a7ae6e56bf154c8a6998010a983b66e4ef806cd11298f01cb7175";  // Your wallet private key
+const RPC_URL = ""; // Ethereum RPC
+const PRIVATE_KEY = "";  // Your wallet private key
 
 // ===========================
 // 🔹 TOKENS
