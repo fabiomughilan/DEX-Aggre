@@ -1,16 +1,15 @@
 import React, { useState } from "react";
+import ConnectWallet from "./components/ConnectWallet";
 
 export default function SwapBox() {
   const [amount, setAmount] = useState("");
 
   return (
     <div className="flex flex-col items-center bg-black text-white p-6 rounded-2xl shadow-lg w-[400px]">
-      <h1 className="text-xl font-bold mb-4">GlueX Swap</h1>
+      <h1 className="text-xl font-bold mb-4">Thalaivar DEX</h1>
 
       {/* Wallet Connect Button */}
-      <button className="bg-green-500 px-4 py-2 rounded-lg w-full">
-        Connect Wallet
-      </button>
+      <ConnectWallet />
 
       {/* Amount Input */}
       <input
