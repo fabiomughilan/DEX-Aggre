@@ -17,7 +17,7 @@ async function getQuote() {
       {
         headers: {
           "content-type": "application/json",
-          "x-api-key": "RSvguRUV5uE1lSJk78tHKxggOHt65noY",
+          "x-api-key": "",
         },
       }
     );
