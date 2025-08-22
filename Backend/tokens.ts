@@ -1,7 +1,3 @@
-Certainly! Below are full, production-ready examples of tokens.ts and Chains.ts with a broad set of popular mainnets and their canonical USDC addresses. You can extend these for any new chains or tokens as needed.
-
-tokens.ts
-ts
 // tokens.ts
 
 // USDC (or bridged/wrapped USDC) contract address for each supported chain.

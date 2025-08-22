@@ -12,29 +12,41 @@ import {
 interface Token {
   symbol: string
   name: string
-  icon: string
+  address: string
+  decimals: number
+  icon?: string
+  usdPrice?: number
 }
-
-const tokens: Token[] = [
-  { symbol: "ETH", name: "Ethereum", icon: "⟠" },
-  { symbol: "USDC", name: "USD Coin", icon: "💎" },
-  { symbol: "USDT", name: "Tether", icon: "💰" },
-  { symbol: "BTC", name: "Bitcoin", icon: "₿" },
-  { symbol: "BNB", name: "Binance Coin", icon: "🟨" },
-]
 
 interface TokenSelectorProps {
-  label: string
+  label?: string
   selectedToken?: Token
   onTokenSelect: (token: Token) => void
+  availableTokens?: Token[]
+  hideLabel?: boolean
 }
 
-const TokenSelector = ({ label, selectedToken, onTokenSelect }: TokenSelectorProps) => {
+const TokenSelector = ({ 
+  label, 
+  selectedToken, 
+  onTokenSelect, 
+  availableTokens = [],
+  hideLabel = false 
+}: TokenSelectorProps) => {
   const [open, setOpen] = useState(false)
+
+  // Use availableTokens if provided, otherwise fall back to default tokens
+  const tokens = availableTokens.length > 0 ? availableTokens : [
+    { symbol: "ETH", name: "Ethereum", address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", decimals: 18, icon: "⟠" },
+    { symbol: "USDC", name: "USD Coin", address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6, icon: "💎" },
+    { symbol: "USDT", name: "Tether", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", decimals: 6, icon: "💰" },
+  ]
 
   return (
     <div className="space-y-2">
-      <label className="text-sm text-dex-text-muted font-medium">{label}</label>
+      {!hideLabel && label && (
+        <label className="text-sm text-dex-text-muted font-medium">{label}</label>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <DexButton 
@@ -43,7 +55,7 @@ const TokenSelector = ({ label, selectedToken, onTokenSelect }: TokenSelectorPro
           >
             {selectedToken ? (
               <div className="flex items-center gap-3">
-                <span className="text-lg">{selectedToken.icon}</span>
+                <span className="text-lg">{selectedToken.icon || "🪙"}</span>
                 <div className="text-left">
                   <div className="font-medium text-dex-text-primary">{selectedToken.symbol}</div>
                   <div className="text-xs text-dex-text-muted">{selectedToken.name}</div>
@@ -69,7 +81,7 @@ const TokenSelector = ({ label, selectedToken, onTokenSelect }: TokenSelectorPro
                 }}
                 className="w-full flex items-center gap-3 p-3 rounded-lg bg-transparent hover:bg-dex-card-hover transition-colors"
               >
-                <span className="text-lg">{token.icon}</span>
+                <span className="text-lg">{token.icon || "🪙"}</span>
                 <div className="text-left flex-1">
                   <div className="font-medium text-dex-text-primary">{token.symbol}</div>
                   <div className="text-sm text-dex-text-muted">{token.name}</div>

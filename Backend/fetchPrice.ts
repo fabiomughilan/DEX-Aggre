@@ -28,7 +28,7 @@ async function fetchTokenPrice(requests: TokenPriceRequest[]): Promise<TokenPric
     throw new Error(`Error fetching price: ${response.statusText}`);
   }
 
-  const data: TokenPriceResponse[] = await response.json();
+  const data = await response.json() as TokenPriceResponse[];
   return data;
 }
 
