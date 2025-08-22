@@ -108,7 +108,7 @@ const executeTransaction = async (
     data: calldata,
     gas: Number(gasLimit),
     gasPrice: web3.utils.toHex(gasPrice),
-    nonce: await web3.eth.getTransactionCount(account.address),
+    nonce: Number(await web3.eth.getTransactionCount(account.address)),
     value: web3.utils.toHex(value),
     chainId,
   };
@@ -125,9 +125,9 @@ const executeTransaction = async (
 async function main() {
   const headers = { "x-api-key": API_KEY };
   const rpcChainId = await web3.eth.getChainId();
-  const chainForApi = rpcChainId === 1 ? "ethereum" : rpcChainId === 11155111 ? "sepolia" : String(rpcChainId);
-  const tokenOut = getUsdcAddress(rpcChainId);
-  console.log("Using RPC chainId:", rpcChainId, "-> API chain:", chainForApi);
+  const chainForApi = Number(rpcChainId) === 1 ? "ethereum" : Number(rpcChainId) === 11155111 ? "sepolia" : String(rpcChainId);
+  const tokenOut = getUsdcAddress(Number(rpcChainId));
+  console.log("Using RPC chainId:", rpcChainId.toString(), "-> API chain:", chainForApi);
   console.log("Account address:", account.address);
   const body = {
     chainID: chainForApi,
@@ -149,7 +149,7 @@ async function main() {
 
   console.log("Quote received. Router:", quote.result.router);
   console.log("Calldata length:", quote.result.calldata?.length ?? 0);
-  const chainId = rpcChainId;
+  const chainId = Number(rpcChainId);
   const receipt = await executeTransaction(
     quote.result.calldata,
     quote.result.router,
