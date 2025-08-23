@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { MessageCircle, Mic, X, Send } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { Input } from './ui/input'
+// import { Input } from './ui/input'
 import { ScrollArea } from './ui/scroll-area'
 // import { useConversation } from '@11labs/react'
 
@@ -145,14 +145,14 @@ const AIBot = () => {
           {/* Input */}
           <div className="p-4 border-t border-border">
             <div className="flex space-x-2">
-              <Input
+              {/* <Input
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Type your message..."
                 className="flex-1 bg-dex-card border-border text-dex-text-primary placeholder:text-dex-text-muted"
                 disabled={isVoiceMode}
-              />
+              /> */}
               <Button
                 onClick={handleSendMessage}
                 size="icon"

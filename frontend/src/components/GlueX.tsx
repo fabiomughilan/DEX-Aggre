@@ -35,7 +35,7 @@ const config = {
       }
     },
     wallet: {
-      onConnect: () => console.log("Wallet connected"),
+      onConnect: ()=>{console.log() },
       usePartialWalletManagement: true
     }
   }

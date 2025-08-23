@@ -23,7 +23,7 @@ export default function ConnectWallet() {
           : "bg-green-500 hover:bg-green-600"
       }`}
     >
-      {authenticated ? "Connected ✅" : "Connect Wallet"}
+      {authenticated ? "Connected" : "Connect Wallet"}
     </button>
   );
 }
