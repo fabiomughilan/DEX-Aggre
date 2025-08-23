@@ -38,10 +38,26 @@ interface SwapRequest {
   privateKey: string;
 }
 
+interface TokenPriceRequest {
+  domestic_blockchain: string;
+  domestic_token: string;
+  foreign_blockchain: string;
+  foreign_token: string;
+}
+
+interface TokenPriceResponse {
+  domestic_blockchain: string;
+  domestic_token: string;
+  foreign_blockchain: string;
+  foreign_token: string;
+  price: number;
+}
+
 // -------- Config
 const API_KEY = process.env.GLUEX_API_KEY ?? "";
 const UNIQUE_PID = "f29ec7b244e829aaa006684a05cb3ff02f0e5a1c09527a8f897df52cc59a5a1d";
 const QUOTE_ENDPOINT = "https://router.gluex.xyz/v1/quote";
+const PRICE_ENDPOINT = "https://exchange-rates.gluex.xyz/";
 
 // -------- Helpers
 const fetchQuote = async (
@@ -52,7 +68,45 @@ const fetchQuote = async (
   return res.data;
 };
 
+const fetchTokenPrice = async (requests: TokenPriceRequest[]): Promise<TokenPriceResponse[]> => {
+  const response = await fetch(PRICE_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requests),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching price: ${response.statusText}`);
+  }
+
+  const data = await response.json() as TokenPriceResponse[];
+  return data;
+};
+
 // -------- API Routes
+
+// Get token prices for conversion rates
+app.post("/api/prices", async (req, res) => {
+  try {
+    const { requests } = req.body;
+
+    if (!requests || !Array.isArray(requests)) {
+      return res.status(400).json({ error: "Missing or invalid requests array" });
+    }
+
+    const priceData = await fetchTokenPrice(requests);
+    
+    res.json({
+      success: true,
+      data: priceData
+    });
+  } catch (error: any) {
+    console.error("Price fetch error:", error);
+    res.status(500).json({ error: error.message || "Internal server error" });
+  }
+});
 
 // Get quote for a swap
 app.post("/api/quote", async (req, res) => {

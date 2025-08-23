@@ -3,6 +3,7 @@ import Footer from "@/components/Footer"
 import SwapCard from "@/components/SwapCard"
 import BackgroundEffects from "@/components/BackgroundEffects"
 import AIBot from "@/components/AIBot"
+import Widget from "@/components/GlueX"
 
 const Index = () => {
   return (
@@ -11,7 +12,7 @@ const Index = () => {
       <Header />
       
       <main className="flex items-center justify-center min-h-screen pt-20 pb-20">
-        <SwapCard />
+        <Widget />
       </main>
       
       <Footer />

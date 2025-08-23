@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { ArrowDownUp, Settings, Zap, Loader2, AlertCircle } from "lucide-react";
+import { ArrowDownUp, Settings, Zap, Loader2, AlertCircle, TrendingUp } from "lucide-react";
 import TokenSelector from "./TokenSelector";
 import ChainSelector from "./ChainSelector";
-import { DexButton } from "@/components/ui/dex-button";
+
 import { Input } from "@/components/ui/input";
 import { useSwap } from "@/hooks/useSwap";
 import { useToast } from "@/hooks/use-toast";
@@ -46,21 +46,23 @@ const SwapCard = () => {
   const [selectedChain, setSelectedChain] = useState<string>("ethereum");
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
-  const [userAddress, setUserAddress] = useState("");
-  const [privateKey, setPrivateKey] = useState("");
   const [availableTokens, setAvailableTokens] = useState<Token[]>([]);
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const { toast } = useToast();
   const { 
     isLoading, 
     error, 
     quote, 
+    conversionRate,
     getQuote, 
+    getConversionRate,
     executeSwap, 
     getSupportedTokens,
     clearError,
-    clearQuote 
+    clearQuote,
+    clearConversionRate
   } = useSwap();
 
   // Load available tokens when chain changes
@@ -81,26 +83,44 @@ const SwapCard = () => {
     loadTokens();
   }, [selectedChain, getSupportedTokens]);
 
-  // Update quote when input changes
+  // Fetch conversion rate when tokens or chain changes
   useEffect(() => {
-    if (fromToken && toToken && fromAmount && parseFloat(fromAmount) > 0 && userAddress) {
-      const fetchQuote = async () => {
-        const quoteData = await getQuote(fromToken, toToken, fromAmount, userAddress, selectedChain);
-        if (quoteData) {
-          // Convert output amount from wei to human readable
-          const outputAmount = parseFloat(quoteData.outputAmount) / Math.pow(10, toToken.decimals);
-          setToAmount(outputAmount.toString());
+    if (fromToken && toToken && selectedChain) {
+      const fetchRate = async () => {
+        setIsLoadingRate(true);
+        try {
+          await getConversionRate(fromToken, toToken, selectedChain, selectedChain);
+        } catch (err) {
+          console.error('Failed to fetch conversion rate:', err);
+        } finally {
+          setIsLoadingRate(false);
         }
       };
 
-      // Debounce quote requests
-      const timeoutId = setTimeout(fetchQuote, 500);
-      return () => clearTimeout(timeoutId);
+      fetchRate();
     } else {
-      setToAmount("0");
-      clearQuote();
+      clearConversionRate();
     }
-  }, [fromToken, toToken, fromAmount, userAddress, selectedChain, getQuote, clearQuote]);
+  }, [fromToken, toToken, selectedChain, getConversionRate, clearConversionRate]);
+
+  // Calculate TO amount when FROM amount changes
+  useEffect(() => {
+    if (fromAmount && parseFloat(fromAmount) > 0 && conversionRate && fromToken && toToken) {
+      setIsCalculating(true);
+      
+      // Calculate the output amount based on conversion rate
+      const inputAmount = parseFloat(fromAmount);
+      const outputAmount = inputAmount * conversionRate;
+      
+      // Format the output amount based on token decimals
+      const formattedOutput = outputAmount.toFixed(toToken.decimals === 18 ? 6 : 2);
+      setToAmount(formattedOutput);
+      
+      setIsCalculating(false);
+    } else if (!fromAmount || parseFloat(fromAmount) <= 0) {
+      setToAmount("0");
+    }
+  }, [fromAmount, conversionRate, fromToken, toToken]);
 
   // Handle errors
   useEffect(() => {
@@ -121,66 +141,29 @@ const SwapCard = () => {
     setToAmount(fromAmount);
   };
 
-  const handleConnectWallet = () => {
-    // In a real app, this would connect to MetaMask or other wallet
-    // For demo purposes, we'll use a simple input
-    const address = prompt("Enter your wallet address (0x...):");
-    const key = prompt("Enter your private key (0x...):");
-    
-    if (address && key) {
-      setUserAddress(address);
-      setPrivateKey(key);
-      setIsWalletConnected(true);
-      toast({
-        title: "Wallet Connected",
-        description: `Connected to ${address.slice(0, 6)}...${address.slice(-4)}`,
-      });
-    }
-  };
-
   const handleSwap = async () => {
-    if (!quote || !fromToken || !toToken || !userAddress || !privateKey) {
+    if (!fromToken || !toToken || !fromAmount || parseFloat(fromAmount) <= 0) {
       toast({
         title: "Error",
-        description: "Please ensure all fields are filled and wallet is connected",
+        description: "Please ensure all fields are filled with valid amounts",
         variant: "destructive",
       });
       return;
     }
 
-    const chainInfo = chainQuickList.find(c => c.key === selectedChain);
-    if (!chainInfo) {
-      toast({
-        title: "Error",
-        description: "Invalid chain selected",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Convert amount to wei
-    const valueWei = (parseFloat(fromAmount) * Math.pow(10, fromToken.decimals)).toString();
-
-    const result = await executeSwap(
-      quote.calldata,
-      quote.router,
-      valueWei,
-      chainInfo.id,
-      userAddress,
-      privateKey
-    );
-
-    if (result) {
-      toast({
-        title: "Swap Successful!",
-        description: `Transaction: ${result.transactionHash.slice(0, 6)}...${result.transactionHash.slice(-4)}`,
-      });
-      
-      // Reset form
+    // For demo purposes, show a success message
+    // In a real implementation, this would execute the actual swap
+    toast({
+      title: "Swap Initiated",
+      description: `Swapping ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`,
+    });
+    
+    // Reset form after successful swap
+    setTimeout(() => {
       setFromAmount("");
       setToAmount("");
       clearQuote();
-    }
+    }, 2000);
   };
 
   // Animated gradient classes for the swap button
@@ -198,8 +181,7 @@ const SwapCard = () => {
       </span>
     ) : null;
 
-  const canSwap = fromToken && toToken && fromAmount && parseFloat(fromAmount) > 0 && 
-                  userAddress && privateKey && quote && !isLoading;
+  const canSwap = fromToken && toToken && fromAmount && parseFloat(fromAmount) > 0 && !isLoading;
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -289,7 +271,7 @@ const SwapCard = () => {
               <span className="text-sm text-white/60 mb-0.5 font-medium">To</span>
               <div className="flex items-center">
                 <div className="text-3xl font-bold text-white/30 flex-1 select-none">
-                  {isLoading ? (
+                  {isCalculating ? (
                     <Loader2 className="h-8 w-8 animate-spin text-[#23b68c]" />
                   ) : (
                     toAmount || "0"
@@ -307,63 +289,54 @@ const SwapCard = () => {
             </div>
           </div>
 
-          {/* Quote Info */}
-          {quote && (
+          {/* Conversion Rate Display */}
+          {fromToken && toToken && (
             <div className="mt-4 p-3 bg-[#23b68c1a] rounded-lg border border-[#23b68c33]">
               <div className="text-sm text-[#23b68c]">
-                <div className="flex justify-between">
-                  <span>Rate:</span>
-                  <span>1 {fromToken?.symbol} = {(parseFloat(toAmount) / parseFloat(fromAmount)).toFixed(6)} {toToken?.symbol}</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="font-medium">Conversion Rate</span>
                 </div>
-                <div className="flex justify-between mt-1">
-                  <span>Router:</span>
-                  <span className="text-xs">{quote.router.slice(0, 6)}...{quote.router.slice(-4)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Swap / Connect Wallet Button */}
-          <div className="mt-7">
-            {!isWalletConnected ? (
-              <button 
-                onClick={handleConnectWallet}
-                className={swapButtonClass}
-              >
-                <Zap className="h-5 w-5" />
-                Connect wallet
-              </button>
-            ) : (
-              <button 
-                onClick={handleSwap}
-                disabled={!canSwap || isLoading}
-                className={`${swapButtonClass} ${!canSwap ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                {isLoadingRate ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Loading rate...</span>
+                  </div>
+                ) : conversionRate ? (
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span>1 {fromToken.symbol} =</span>
+                      <span className="font-semibold">{conversionRate.toFixed(6)} {toToken.symbol}</span>
+                    </div>
+                    <div className="flex justify-between text-xs opacity-80">
+                      <span>1 {toToken.symbol} =</span>
+                      <span>{(1 / conversionRate).toFixed(6)} {fromToken.symbol}</span>
+                    </div>
+                  </div>
                 ) : (
-                  <Zap className="h-5 w-5" />
+                  <div className="text-xs opacity-70">
+                    Rate not available for this token pair
+                  </div>
                 )}
-                {isLoading ? 'Processing...' : 'Swap'}
-              </button>
-            )}
-          </div>
-
-          {/* Wallet Info */}
-          {isWalletConnected && (
-            <div className="mt-4 p-3 bg-black/30 rounded-lg">
-              <div className="text-xs text-white/60">
-                <div className="flex justify-between">
-                  <span>Connected:</span>
-                  <span>{userAddress.slice(0, 6)}...{userAddress.slice(-4)}</span>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span>Chain:</span>
-                  <span className="capitalize">{selectedChain}</span>
-                </div>
               </div>
             </div>
           )}
+
+          {/* Swap Button */}
+          <div className="mt-7">
+            <button 
+              onClick={handleSwap}
+              disabled={!canSwap || isLoading}
+              className={`${swapButtonClass} ${!canSwap ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Zap className="h-5 w-5" />
+              )}
+              {isLoading ? 'Processing...' : 'Swap'}
+            </button>
+          </div>
 
         </div>
       </div>

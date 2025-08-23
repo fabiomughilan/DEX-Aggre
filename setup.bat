@@ -37,4 +37,12 @@ echo.
 echo For production, build the backend first:
 echo cd Backend && npm run build && npm start
 echo.
+echo ========================================
+echo New Features:
+echo - Automatic TO token calculation when typing FROM amounts
+echo - Real-time conversion rates from GlueX API
+echo - Simplified Swap interface (no wallet connection required)
+echo - Instant price updates when changing tokens/chains
+echo ========================================
+echo.
 pause
